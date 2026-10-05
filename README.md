@@ -5,10 +5,8 @@ An agentic, multi-modal nutrition tracking assistant powered by **LangGraph**, *
 ---
 
 ## 🎨 UI Overview
+<img width="1895" height="954" alt="image" src="https://github.com/user-attachments/assets/6cf9a792-ca23-49f5-a5f3-96ced75026f6" />
 
-| Sidebar & Profile Settings | Multi-Modal Chat & Visual Meal Logging |
-| :---: | :---: |
-| ![Sidebar Settings](https://placehold.co/600x400/0f172a/ffffff?text=Sidebar+%26+Profile+Settings) | ![Chat Interface](https://placehold.co/600x400/334155/ffffff?text=Multi-Modal+Chat+%26+Meal+Logging) |
 
 ---
 
