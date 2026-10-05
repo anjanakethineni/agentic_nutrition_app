@@ -1,5 +1,39 @@
+import os
 import requests
+from dotenv import load_dotenv
 from langchain_core.tools import tool
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.vectorstores import Chroma
+
+load_dotenv()
+
+PERSIST_PATH = "./chroma_db"
+
+@tool
+def search_hospital_diet_guidelines(query: str) -> str:
+    """Search verified medical diet protocols, clinical guidelines, keto diets, cancer diets, and hospital publications."""
+    if not os.path.exists(PERSIST_PATH):
+        return "No local diet guidelines database was found. Rely on general clinical knowledge instead."
+    
+    try:
+        embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+        vectorstore = Chroma(
+            persist_directory=PERSIST_PATH,
+            embedding_function=embeddings
+        )
+        
+        docs = vectorstore.similarity_search(query, k=3)
+        if not docs:
+            return f"No relevant protocol context found in hospital database for '{query}'."
+        
+        results = []
+        for doc in docs:
+            source = doc.metadata.get("source", "Unknown document")
+            results.append(f"--- Document Source: {source} ---\n{doc.page_content}")
+            
+        return "\n\n".join(results)
+    except Exception as e:
+        return f"Error retrieving document snippets: {str(e)}"
 
 @tool
 def get_verified_nutrition(food_item: str) -> str:
@@ -26,4 +60,3 @@ def get_verified_nutrition(food_item: str) -> str:
         return f"Could not locate verified metrics for '{food_item}' in public registries. Provide a realistic estimate based on visual composition instead."
     except Exception as e:
         return f"Database lookup failed due to network error: {str(e)}. Default to vision estimations."
-    

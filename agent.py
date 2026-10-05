@@ -1,12 +1,16 @@
+from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import ToolNode
 
 from state import AgentState
-from tools import get_verified_nutrition
+from tools import get_verified_nutrition, search_hospital_diet_guidelines
 
-tools = [get_verified_nutrition]
+load_dotenv()
+
+# Bind both tools
+tools = [get_verified_nutrition, search_hospital_diet_guidelines]
 tool_node = ToolNode(tools)
 model = ChatOpenAI(model="gpt-4o", temperature=0).bind_tools(tools)
 
@@ -46,9 +50,9 @@ def call_model(state: AgentState):
         f"Active dietary goal: {current_goal}. "
         f"Active allergies/restrictions: {current_allergies}. "
         "CRITICAL: If the food contains ingredients listed in the user's allergies/restrictions, you MUST explicitly flag it as dangerous immediately. "
-        "Tailor your response format directly to the user's intent (e.g., provide macro breakdowns for LOG_MEAL, safety alerts for ALLERGY_CHECK). "
-        "Analyze any attached images and answer ongoing user questions. Use the get_verified_nutrition tool "
-        "to look up individual ingredients found in the food when exact metrics are needed. Do not guess values if you can query the tool."
+        "Use search_hospital_diet_guidelines tool whenever user asks about specific therapeutic or clinical diets (such as Keto, Cancer diets, Renal, Low Sodium, etc.) "
+        "to reference official medical guidelines. Use get_verified_nutrition tool to look up ingredient macro metrics. "
+        "Do not invent clinical advice if hospital diet guidelines can be retrieved."
     )
     full_messages = [{"role": "system", "content": system_prompt}] + messages
     response = model.invoke(full_messages)
