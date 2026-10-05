@@ -1,63 +1,129 @@
-# 🥗 AI Nutrition Studio
+# 🥗 AI Nutrition Studio & Clinical RAG Assistant
 
-**AI Nutrition Studio** is an advanced agentic, intent-aware clinical nutrition assistant built using **Streamlit**, **LangGraph**, and **OpenAI GPT-4o**. It empowers users to track macros, scan meal photos via vision capabilities, verify ingredient safety against custom allergy/dietary restrictions, and query live public nutrition registries.
+An agentic, multi-modal nutrition tracking assistant powered by **LangGraph**, **LangChain**, and **Streamlit**. The application combines computer vision for meal analysis with Retrieval-Augmented Generation (RAG) to query clinical diet protocols (e.g., Keto, Oncology/Cancer diets, Low Sodium) and live macro databases.
+
+---
+
+## 🎨 UI Overview
+
+| Sidebar & Profile Settings | Multi-Modal Chat & Visual Meal Logging |
+| :---: | :---: |
+| ![Sidebar Settings](https://placehold.co/600x400/0f172a/ffffff?text=Sidebar+%26+Profile+Settings) | ![Chat Interface](https://placehold.co/600x400/334155/ffffff?text=Multi-Modal+Chat+%26+Meal+Logging) |
+
+---
+
+## ✨ Features
+
+- 📸 **Visual Meal Logging**: Upload photos of meals for instant ingredient identification and macro breakdown.
+- 🎯 **Intent Classification**: Automatically detects user intent (`LOG_MEAL`, `ALLERGY_CHECK`, `MEAL_PLAN`, `GENERAL_QUERY`).
+- 📚 **Clinical RAG Integration**: Queries localized medical PDF guidelines (Keto, Renal, Cancer Protocols, Low Sodium) embedded via **ChromaDB**.
+- 🔍 **Live Macro Verification**: Queries public open databases (OpenFoodFacts) for accurate metric lookup per 100g.
+- ⚠️ **Automated Allergen Warnings**: Direct alerts when flagged restrictions are detected in user queries or uploads.
+
+---
+
+## 🏗️ Agentic Architecture Flow
+
+```
+                     ┌────────────────────────┐
+                     │   User Query / Photo   │
+                     └───────────┬────────────┘
+                                 │
+                                 ▼
+                     ┌────────────────────────┐
+                     │   Intent Classifier    │
+                     └───────────┬────────────┘
+                                 │
+                                 ▼
+                     ┌────────────────────────┐
+                     │      LLM Agent         │
+                     │   (GPT-4o + System)    │
+                     └───────────┬────────────┘
+                                 │
+                   ┌─────────────┴─────────────┐
+                   ▼                           ▼
+        ┌─────────────────────┐     ┌─────────────────────┐
+        │ Verified Nutrition  │     │ Hospital Guideline  │
+        │   Tool (API Search) │     │  RAG Tool (Chroma)  │
+        └──────────┬──────────┘     └──────────┬──────────┘
+                   │                           │
+                   └─────────────┬─────────────┘
+                                 │
+                                 ▼
+                     ┌────────────────────────┐
+                     │  Final Response & UI   │
+                     └────────────────────────┘
+```
+
+---
+
+## 🚀 Quickstart Guide
+
+### 1. Repository Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/ai-nutrition-studio.git
+cd ai-nutrition-studio
+
+# Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### 2. Environment Configuration
+
+Create a `.env` file in the root directory:
+
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+### 3. Ingest Clinical Guidelines (RAG)
+
+1. Place your medical PDFs or text documents inside the `./data` directory (e.g., `keto_guidelines.pdf`, `cancer_nutrition.pdf`).
+2. Run the ingestion script to split, embed, and store vectors in ChromaDB:
+
+```bash
+python ingest_docs.py
+```
+
+### 4. Launch the Application
+
+```bash
+streamlit run app.py
+```
 
 ---
 
 ## 📂 Project Structure
 
-```text
-nutrition_app/
-├── app.py               # Main Streamlit UI, custom styling, and chat event loop
-├── agent.py             # LangGraph state graph topology, intent classifier, and agent node
-├── tools.py             # External API tools (Open Food Facts registry lookups)
-├── state.py             # TypedDict agent state definitions and history types
-├── requirements.txt     # Python package dependencies
-└── .env                 # Environment variables configuration (API keys)
+```
+├── app.py              # Streamlit dashboard interface & CSS styling
+├── agent.py            # LangGraph workflow, nodes, and conditional edges
+├── tools.py            # RAG ChromaDB lookup and OpenFoodFacts API tool
+├── state.py            # LangGraph state schema definition
+├── ingest_docs.py      # PDF parsing and vector database creation script
+├── requirements.txt    # Project dependencies
+└── data/               # Folder containing diet & hospital PDF guidelines
 ```
 
 ---
 
-## 🛠️ Key Components
+## 🛠️ Tech Stack
 
-1. **Intent Classifier Node (`agent.py`)**: Automatically categorizes user queries into intents (`LOG_MEAL`, `ALLERGY_CHECK`, `MEAL_PLAN`, `GENERAL_QUERY`) before routing to the clinical dietitian agent.
-2. **Verified Database Tool (`tools.py`)**: Connects to the Open Food Facts API to retrieve precise macro breakdowns (calories, protein, carbs, fats per 100g) for verified items.
-3. **Agentic Workflow (`agent.py`)**: Managed via LangGraph with state persistence and conditional tool-calling loops.
-4. **Interactive UI (`app.py`)**: Styled Streamlit interface supporting sidebar profile settings (dietary goals, allergy restrictions) and multi-modal image/text input.
-
----
-
-## 🚀 Getting Started & Installation
-
-### 1. Clone or Setup Repository
-Ensure all modular files (`app.py`, `agent.py`, `tools.py`, `state.py`, `requirements.txt`) are placed together in your local project root directory.
-
-### 2. Install Dependencies
-Run the following command in your terminal to install all required packages:
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Configure Environment Variables
-Create a file named `.env` in the root directory of your project folder and add your OpenAI API key:
-```env
-OPENAI_API_KEY=your_actual_openai_api_key_here
-```
+- **Frontend**: Streamlit
+- **LLM Orchestration**: LangGraph, LangChain Core, LangChain OpenAI
+- **Vector Database**: ChromaDB (`langchain-chroma`)
+- **Embeddings**: OpenAI `text-embedding-3-small`
+- **Vision Model**: OpenAI `gpt-4o`
+- **External Data**: OpenFoodFacts API
 
 ---
 
-## ▶️ Running the Application
+## 📜 License
 
-Launch the Streamlit web interface locally from your terminal:
-```bash
-streamlit run app.py
-```
-
-Open the local development URL provided in your terminal output (typically `http://localhost:8501`) to interact with your AI Nutrition Studio.
-
----
-
-## 🎯 Usage Guide
-- **Sidebar Configuration**: Set your target *Dietary Goal* (e.g., Weight Loss, Keto, Muscle Gain) and enter any *Allergies / Restrictions*.
-- **Meal Logging**: Upload an image of your plate or type a food description to get an automated macro breakdown and intent analysis.
-- **Safety Alerts**: The agent will explicitly flag dangerous ingredients if they violate your configured allergy profile.
+Distributed under the MIT License. See `LICENSE` for more information.
